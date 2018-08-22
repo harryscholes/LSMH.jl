@@ -51,7 +51,7 @@ Split `sequence` into `k`-shingles and hash using `n_hashes` hash functions.
 function signature(sequence::String, k::Int, n_hashes::Int)
     A = Vector{UInt64}(1:n_hashes)
 
-    for seed in 1:n_hashes
+    for seed = 1:n_hashes
         A[seed] = minhash(sequence, k, seed)
     end
 
@@ -68,10 +68,10 @@ function lsh(A::AbstractArray{T,2}, n_bands::Int) where T<:Unsigned
     n_hashes = size(A)[1]
     step = Int(n_hashes/n_bands)
 
-    hashtable = [Dict{T,Set{Int64}}() for _ in 1:n_bands]
+    hashtable = [Dict{T,Set{Int}}() for _ in 1:n_bands]
 
-    for col in 1:size(A)[2]
-        for (band, ptr) in zip(1:n_bands, 1:step:n_hashes)
+    for col = 1:size(A)[2]
+        for (band, ptr) = zip(1:n_bands, 1:step:n_hashes)
             h = hash(view(A, ptr:ptr+step-1, col))
 
             if haskey(hashtable[band], h)
@@ -91,20 +91,19 @@ end
 Return candidate matches.
 """
 function candidates(hashtable)
-    A = Vector{Tuple}()
+    c = Vector{Set{Int}}()
 
-    for band in hashtable
-        for (bucket, ids) in pairs(band)
+    for band = hashtable
+        for (bucket, ids) = band
             if length(ids) > 1
-                for (i, j) in product(ids, ids)
-                    i == j && continue
-                    push!(A, (i,j))
+                for (i, j) = combinations(collect(ids), 2)
+                    push!(c, Set([i,j]))
                 end
             end
         end
     end
 
-    A
+    unique!(c)
 end
 
 """
@@ -121,9 +120,10 @@ Remove `candidates` with Jaccard similarity between their `signatures` less than
 `threshold`.
 """
 function filter_candidates(signatures, candidates, threshold)
-    out = typeof(candidates)()
+    out = Vector{Tuple{Int,Int}}()
 
-    for (i, j) in candidates
+    for (i, j) = candidates
+        println(i,j)
         similarity = jaccard(signatures[:,i], signatures[:,j])
         similarity >= threshold ? push!(out, (i,j)) : nothing
     end

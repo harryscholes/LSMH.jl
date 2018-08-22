@@ -1,6 +1,6 @@
 module LSMH
 
-using Base.Iterators
+using Base.Iterators, Combinatorics
 
 const UInt64_Max = typemax(UInt64)-1
 
