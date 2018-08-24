@@ -37,10 +37,12 @@ function murmur32(data::Union{Array{Int8}, String}, seed::UInt32)::UInt32
 
     remainder = len & 3
 
-    if remainder == 3 k = k ⊻ UInt32(data[last+3]) << 16 end
-    if remainder >= 2 k = k ⊻ UInt32(data[last+2]) <<  8 end
+    blocks = Ptr{UInt8}(pointer(data))
+
+    if remainder == 3 k = k ⊻ UInt32(unsafe_load(blocks, last+3)) << 16 end
+    if remainder >= 2 k = k ⊻ UInt32(unsafe_load(blocks, last+2)) <<  8 end
     if remainder >= 1
-        k = k ⊻ UInt32(data[last+1])
+        k = k ⊻ UInt32(unsafe_load(blocks, last+1))
         k *= c1; k = rotl32(k, 15); k *= c2; h = h ⊻ k
     end
 
