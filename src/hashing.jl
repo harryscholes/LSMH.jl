@@ -8,7 +8,7 @@ end
 
 Split `sequence` into `k`-shingles and hash using a `seed`ed hash function.
 """
-function minhash(sequence::String, k::Int, seed::UInt=zero(UInt))
+function minhash(sequence::String, k::Int, seed::UInt)
     mh = UInt64_Max
 
     for i = 1:length(sequence)-k
@@ -23,10 +23,11 @@ function minhash(sequence::String, k::Int, seed::UInt=zero(UInt))
 end
 
 minhash(sequence::String, k::Int, seed::Int) = minhash(sequence, k, UInt(seed))
+minhash(sequence::String, k::Int) = minhash(sequence, k, UInt(0))
 
 """
 """
-function minhash_with_sequence(sequence::String, k::Int, seed::UInt=zero(UInt))
+function minhash_with_sequence(sequence::String, k::Int, seed::UInt)
     mh = UInt64_Max
     seq = nothing
 
@@ -42,6 +43,9 @@ function minhash_with_sequence(sequence::String, k::Int, seed::UInt=zero(UInt))
 
     MinHash(mh, string(seq))
 end
+
+minhash_with_sequence(sequence::String, k::Int, seed::Int) = minhash(sequence, k, UInt(seed))
+minhash_with_sequence(sequence::String, k::Int) = minhash(sequence, k, UInt(0))
 
 """
     signature(sequence::String, k::Int, n_hashes::Int)
