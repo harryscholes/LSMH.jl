@@ -13,7 +13,7 @@ domain.
     h = h ⊻ h >> 16
 end
 
-function murmur32(data::Union{Array{Int8}, String}, seed::UInt32)::UInt32
+function _murmur32(data, seed::UInt32)::UInt32
     # head
     len = UInt32(length(data))
     nblocks = div(len, 4)
@@ -51,11 +51,10 @@ function murmur32(data::Union{Array{Int8}, String}, seed::UInt32)::UInt32
     h = fmix32(h)
 end
 
-murmur32(key::AbstractString) = murmur32(key, UInt32(0))
-murmur32(key::AbstractString, seed::UInt32) = murmur32(key, seed)
-murmur32(key::AbstractString, seed::Int) = murmur32(key, UInt32(seed))
-murmur32(key::Array{UInt8}) = murmur32(key, UInt32(0))
-murmur32(key::Array{UInt8}, seed::Int) = murmur32(key, UInt32(seed))
+const Hashable = Union{AbstractString,Array{UInt8}}
+murmur32(key::Hashable) = _murmur32(key, UInt32(0))
+murmur32(key::Hashable, seed::UInt32) = _murmur32(key, seed)
+murmur32(key::Hashable, seed::Int) = _murmur32(key, UInt32(seed))
 
 """
     murmur32(key [, seed])
