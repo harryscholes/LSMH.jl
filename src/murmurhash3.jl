@@ -2,27 +2,16 @@
 MurmurHash3 was written by Austin Appleby, and is placed in the public
 domain.
 =#
+const Hashable = Union{AbstractString,Array{UInt8}}
+const c1 = 0xcc9e2d51
+const c2 = 0x1b873593
 
-@inline rotl32(x::UInt32, r::Int)::UInt32 = (x << r) | (x >> (32 - r))
-
-@inline function fmix32(h::UInt32)::UInt32
-    h = h ⊻ h >> 16
-    h *= 0x85ebca6b
-    h = h ⊻ h >> 13
-    h *= 0xc2b2ae35
-    h = h ⊻ h >> 16
-end
-
-function _murmur32(data, seed::UInt32)::UInt32
+function murmur32(data::Hashable, seed::UInt32)::UInt32
     # head
     len = UInt32(length(data))
     nblocks = div(len, 4)
     last = nblocks*4
-
     h = seed
-
-    c1 = 0xcc9e2d51; c2 = 0x1b873593
-
     blocks = Ptr{UInt32}(pointer(data))
 
     # body
@@ -34,15 +23,13 @@ function _murmur32(data, seed::UInt32)::UInt32
 
     # tail
     k = UInt32(0)
-
     remainder = len & 3
+    tail = Ptr{UInt8}(pointer(data))
 
-    blocks = Ptr{UInt8}(pointer(data))
-
-    if remainder == 3 k = k ⊻ UInt32(unsafe_load(blocks, last+3)) << 16 end
-    if remainder >= 2 k = k ⊻ UInt32(unsafe_load(blocks, last+2)) <<  8 end
+    if remainder == 3 k = k ⊻ UInt32(unsafe_load(tail, last+3)) << 16 end
+    if remainder >= 2 k = k ⊻ UInt32(unsafe_load(tail, last+2)) <<  8 end
     if remainder >= 1
-        k = k ⊻ UInt32(unsafe_load(blocks, last+1))
+        k = k ⊻ unsafe_load(tail, last+1)
         k *= c1; k = rotl32(k, 15); k *= c2; h = h ⊻ k
     end
 
@@ -50,11 +37,8 @@ function _murmur32(data, seed::UInt32)::UInt32
     h = h ⊻ len
     h = fmix32(h)
 end
-
-const Hashable = Union{AbstractString,Array{UInt8}}
-murmur32(key::Hashable) = _murmur32(key, UInt32(0))
-murmur32(key::Hashable, seed::UInt32) = _murmur32(key, seed)
-murmur32(key::Hashable, seed::Int) = _murmur32(key, UInt32(seed))
+murmur32(key::Hashable) = murmur32(key, UInt32(0))
+murmur32(key::Hashable, seed::Integer) = murmur32(key, UInt32(seed))
 
 """
     murmur32(key [, seed])
@@ -62,3 +46,13 @@ murmur32(key::Hashable, seed::Int) = _murmur32(key, UInt32(seed))
 32 bit hash of `key` using MurmurHash3, optionally seeded with `seed`.
 """
 murmur32
+
+@inline rotl32(x::UInt32, r::Integer)::UInt32 = (x << r) | (x >> (32 - r))
+
+@inline function fmix32(h::UInt32)::UInt32
+    h = h ⊻ h >> 16
+    h *= 0x85ebca6b
+    h = h ⊻ h >> 13
+    h *= 0xc2b2ae35
+    h = h ⊻ h >> 16
+end
