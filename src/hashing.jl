@@ -1,92 +1,115 @@
-struct MinHash{U<:Unsigned}
-    minhash::U
-    kmer::String
-end
-
 """
-    minhash(sequence::String, k::Int, [seed<:UInt])
+    minhash(s, k[, seed])
 
-Split `sequence` into `k`-shingles and hash using a `seed`ed hash function.
+Split `s` into `k`-shingles and hash the shingles using a hash function seeded
+by `seed`.
 """
-function minhash(sequence::String, k::Int, seed::UInt)
-    mh = UInt64_Max
+@inline function minhash(s::AbstractString, k::Int, seed::Integer)
+    h = typemax(UInt32)
 
-    for i = 1:length(sequence)-k
-        ch = hash(SubString(sequence, i:i+k-1), UInt(seed))
+    for i = 1:length(s)-k+1
+        hᵢ = murmur32(SubString(s, i:i+k-1), seed)
 
-        if ch < mh
-            mh = ch
+        if hᵢ < h
+            h = hᵢ
         end
     end
 
-    mh
+    h
 end
-
-minhash(sequence::String, k::Int, seed::Int) = minhash(sequence, k, UInt(seed))
-minhash(sequence::String, k::Int) = minhash(sequence, k, UInt(0))
+minhash(s::AbstractString, k::Int) = minhash(s, k, 0)
 
 """
+    signature(s, k, n)
+
+Split `s` into `k`-shingles and hash using `n` hash functions. The ith hash
+function will be seeded with i.
 """
-function minhash_with_sequence(sequence::String, k::Int, seed::UInt)
-    mh = UInt64_Max
-    seq = nothing
+function signature(s::AbstractString, k::Int, n::Int)
+    A = Vector{UInt32}(undef, n)
 
-    for i = 1:length(sequence)-shingle_length
-        shingle = SubString(sequence, i:i+shingle_length-1)
-        ch = hash(shingle, UInt(seed))
-
-        if ch < mh
-            mh = ch
-            seq = shingle
-        end
-    end
-
-    MinHash(mh, string(seq))
-end
-
-minhash_with_sequence(sequence::String, k::Int, seed::Int) = minhash(sequence, k, UInt(seed))
-minhash_with_sequence(sequence::String, k::Int) = minhash(sequence, k, UInt(0))
-
-"""
-    signature(sequence::String, k::Int, n_hashes::Int)
-
-Split `sequence` into `k`-shingles and hash using `n_hashes` hash functions.
-"""
-function signature(sequence::String, k::Int, n_hashes::Int)
-    A = Vector{UInt64}(1:n_hashes)
-
-    for seed = 1:n_hashes
-        A[seed] = minhash(sequence, k, seed)
+    for seed = 1:n
+        A[seed] = minhash(s, k, seed)
     end
 
     A
 end
 
 """
-    lsh(A, n_bands)
+    lsh(A, bands)
 
-Hashes signatures into buckets. For a signature matrix `A` of
-(n_hashes,n_sequences), each signature is split into `n_bands` and hashed.
+Hashes signatures into buckets. For a signature matrix `A` of (m hashes × n
+sequences), each signature is split into `bands` bands and hashed.
+
+------------------------
+    seq1 seq2 seq3 seq4
+   ---------------------
+h1
+h2        band 1
+h3
+   ---------------------
+h4
+h5        band 2
+h6
+   ---------------------
+h7
+h8        band 3
+h9
+------------------------
 """
-function lsh(A::AbstractArray{T,2}, n_bands::Int) where T<:Unsigned
-    n_hashes = size(A)[1]
-    step = Int(n_hashes/n_bands)
+function lsh(A::AbstractArray{T,2}, bands::Int) where T<:Unsigned
+    step = div(size(A)[1], bands)
+    hashtables = Vector{Dict}()
 
-    hashtable = [Dict{T,Set{Int}}() for _ in 1:n_bands]
+    for bandᵢ = 1:bands
+        start = (bandᵢ - 1) * step + 1
+        band = @view A[start:start+step-1, :]
+        push!(hashtables, hashband(band))
+    end
 
-    for col = 1:size(A)[2]
-        for (band, ptr) = zip(1:n_bands, 1:step:n_hashes)
-            h = hash(view(A, ptr:ptr+step-1, col))
+    hashtables
+end
 
-            if haskey(hashtable[band], h)
-                push!(hashtable[band][h], col)
-            else
-                hashtable[band][h] = Set([col])
-            end
+"""
+    hashband(band)
+
+Hashes a `band` (m hashes × n sequences) into a hashtable mapping hashes of each
+sequence's band to sequence IDs.
+"""
+@inline function hashband(band::AbstractArray{<:Unsigned,2})
+    hashtable = Dict{UInt64,Set}()
+
+    for j = 1:size(band)[2]
+        hashes = @view band[:, j]
+
+        # TODO use 32 bit hash
+        h = hash(hashes)
+
+        # TODO use e.g. UniProt IDs as values in the hashtable
+        sequenceⱼ = j
+
+        if haskey(hashtable, h)
+            push!(hashtable[h], sequenceⱼ)
+        else
+            hashtable[h] = Set([sequenceⱼ])
         end
     end
 
+    filter_collisions!(hashtable)
     hashtable
+end
+
+"""
+    filter_collisions!(hashtable)
+
+Removes non-colliding sequences from the `hashtable`.
+"""
+function filter_collisions!(hashtable)
+    for k = keys(hashtable)
+        if length(hashtable[k]) == 1
+            delete!(hashtable, k)
+        end
+    end
 end
 
 """
@@ -95,19 +118,16 @@ end
 Return candidate matches.
 """
 function candidates(hashtable)
-    c = Vector{Set{Int}}()
+    v = Vector{Set}()
+    sizehint!(v, length(hashtable))
 
-    for band = hashtable
-        for (bucket, ids) = band
-            if length(ids) > 1
-                for (i, j) = combinations(collect(ids), 2)
-                    push!(c, Set([i,j]))
-                end
-            end
+    for (bucket, IDs) = hashtable
+        for (i, j) = combinations(collect(IDs), 2)
+            push!(v, Set([i,j]))
         end
     end
 
-    unique!(c)
+    unique!(v)
 end
 
 """
