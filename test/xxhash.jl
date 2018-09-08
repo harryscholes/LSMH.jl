@@ -96,11 +96,12 @@ targets = [[("v", 1259630150),
   ("ZW8ozAMrMZzUAuI53NhzLNH", 3295020974),
   ("zauzpuj6Q5uFAqQIUpCvWYsa", 2834400596)]]
 
-
-@testset "Test agreement of Julia and C implementations of xxHash32" begin
-    for seed = 0:length(targets)-1
-        for t = targets[seed+1]
-            @test xxhash32(t[1], seed) == t[2]
+@testset "xxhash.jl" begin
+    @testset "Test agreement of Julia and C implementations of xxHash32" begin
+        for seed = 0:length(targets)-1
+            for t = targets[seed+1]
+                @test xxhash32(t[1], seed) == t[2]
+            end
         end
     end
 end
