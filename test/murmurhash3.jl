@@ -4,10 +4,10 @@ function MurmurHash3_x86_32(s::String, seed::UInt32)
           sizeof(s), seed % UInt32)
 end
 
-@testset "Test agreement of Julia and C implementations of MurmurHash3_x86_32" begin
-    for seed in rand(UInt, 10)
-        for l in 1:100
-            for _ = 1:100
+@testset "murmurhash3.jl" begin
+    @testset "murmur32 agreement with C implementation" begin
+        for seed in rand(UInt, 10)
+            for l = 1:100
                 s = randstring(l)
                 seed = UInt32(0)
                 @test murmur32(s, seed) == MurmurHash3_x86_32(s, seed)
