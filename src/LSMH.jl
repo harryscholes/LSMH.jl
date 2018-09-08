@@ -8,7 +8,8 @@ export
     murmur32,
     xxhash32,
     fasta_records,
-    fasta_signatures
+    fasta_signatures,
+    identifier
 
 include("hashing.jl")
 include("murmurhash3.jl")
