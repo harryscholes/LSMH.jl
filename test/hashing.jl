@@ -1,4 +1,4 @@
-using LSMH: minhash, AbstractSignature, Signature
+using LSMH: minhash, AbstractSignature, Signature, HashTable, hashband, hashtable, band
 
 struct BadSignature <: AbstractSignature
     badfield
@@ -37,5 +37,29 @@ end
 
         badsig = BadSignature(nothing)
         @test_throws UndefRefError signature(badsig)
+    end
+    @testset "Signature" begin
+        sig = Signature("ABC", UInt32[1,2,3])
+        @test isdefined(sig, :id)
+        @test isdefined(sig, :signature)
+    end
+    @testset "hashband" begin
+        sig = Signature("ABC", Array{UInt32}(1:100))
+        @test hashband(sig, 1, 10) == 0xee56bf56bfc5b740
+        @test hashband(sig, 11, 20) == 0x22f7fea1a9226a53
+    end
+    @testset "HashTable" begin
+        ht = HashTable(UInt32, Int, 1)
+        @test isdefined(ht, :band)
+        @test isdefined(ht, :hashtable)
+        @test band(ht) == 1
+        ht[UInt32(1)] = 100
+        @test hashtable(ht) == Dict{UInt32, Set{Int}}(1 => Set([100]))
+        ht[UInt32(1)] = 100
+        @test hashtable(ht) == Dict{UInt32, Set{Int}}(1 => Set([100]))
+        ht[UInt32(1)] = 101
+        @test hashtable(ht) == Dict{UInt32, Set{Int}}(1 => Set([100,101]))
+        @test length(ht) == 1
+        @test haskey(ht, 1)
     end
 end
