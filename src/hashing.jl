@@ -45,11 +45,10 @@ julia> signature("Hello, world!", 5, 3)
  0x1134f986
  0x291d3c45
 
-julia> signature("Hello, world!", 6, 3)
-3-element Array{UInt32,1}:
+julia> signature("Hello, world!", 6, 2)
+2-element Array{UInt32,1}:
  0x441d7a91
  0x1af9b8f8
- 0x19f1b82a
 ```
 """
 function signature(s::AbstractString, k::Int, n::Int)
