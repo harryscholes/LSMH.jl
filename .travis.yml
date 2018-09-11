@@ -5,5 +5,4 @@ os:
 julia:
   - 1.0
 after_success:
-    - julia -e 'cd(Pkg.dir("LSMH")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
-    - julia -e 'cd(Pkg.dir("LSMH")); Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
+    - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder()); Codecov.submit(process_folder())'
