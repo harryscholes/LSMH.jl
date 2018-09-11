@@ -7,7 +7,7 @@ julia:
 notifications:
   email: false
 script:
-    - julia --inline=no -e 'import Pkg; Pkg.build(); Pkg.test(; coverage=true)'
+    - julia --inline=no -e 'import Pkg; Pkg.build(); Pkg.test("LSMH", coverage=true)'
 after_success:
     - |
         julia -e '
