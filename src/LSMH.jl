@@ -9,7 +9,9 @@ export
     xxhash32,
     fasta_records,
     fasta_signatures,
-    identifier
+    identifier,
+    Signature,
+    HashTable
 
 include("hashing.jl")
 include("murmurhash3.jl")
