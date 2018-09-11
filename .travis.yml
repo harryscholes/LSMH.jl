@@ -6,6 +6,8 @@ julia:
   - 1.0
 notifications:
   email: false
+script:
+    - julia --inline=no -e 'import Pkg; Pkg.build(); Pkg.test(; coverage=true)'
 after_success:
     - |
         julia -e '
