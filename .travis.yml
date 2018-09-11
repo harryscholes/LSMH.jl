@@ -4,5 +4,13 @@ os:
   - osx
 julia:
   - 1.0
+notifications:
+  email: false
 after_success:
-    - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder()); Codecov.submit(process_folder())'
+    - |
+        julia -e '
+            using Pkg
+            Pkg.add("Coverage")
+            using Coverage
+            Coveralls.submit(process_folder())
+            Codecov.submit(process_folder())'
