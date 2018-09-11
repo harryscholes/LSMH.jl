@@ -19,4 +19,4 @@ LSMH is tested against Julia `1.0` on Linux and macOS.
 
 **Continuous integration** | **Test Coverage**
 --- | ---
-[![Build Status](https://api.travis-ci.com/harryscholes/LSMH.jl.svg?branch=master)](https://travis-ci.com/harryscholes/LSMH.jl) | [![Coverage](https://codecov.io/gh/harryscholes/LSMH.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/harryscholes/LSMH.jl)
+[![Build Status](https://api.travis-ci.com/harryscholes/LSMH.jl.svg?branch=master)](https://travis-ci.com/harryscholes/LSMH.jl) | [![Coveralls](https://coveralls.io/repos/github/harryscholes/LSMH.jl/badge.svg)](https://coveralls.io/github/harryscholes/LSMH.jl) [![Codecov](https://codecov.io/gh/harryscholes/LSMH.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/harryscholes/LSMH.jl) 
