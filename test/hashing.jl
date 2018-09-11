@@ -1,4 +1,5 @@
-using LSMH: minhash, AbstractSignature, Signature, HashTable, hashband, hashtable, band
+using LSMH: minhash, AbstractSignature, Signature, HashTable, hashband,
+            hashtable, band, filter_collisions!, jaccard
 
 struct BadSignature <: AbstractSignature
     badfield
@@ -60,6 +61,31 @@ end
         ht[UInt32(1)] = 101
         @test hashtable(ht) == Dict{UInt32, Set{Int}}(1 => Set([100,101]))
         @test length(ht) == 1
-        @test haskey(ht, 1)
+        ht[UInt32(2)] = 101
+        @test length(ht) == 2
+        @test haskey(ht, UInt32(1))
+    end
+    @testset "lsh" begin
+        A = Signature("A", UInt32[1,2,3,4])
+        B = Signature("B", UInt32[1,2,5,6])
+        @test lsh(A, 2) == UInt64[0x8fd27f36c41781c8,0xad365722dfd05b0d]
+        @test lsh(B, 2) == UInt64[0x8fd27f36c41781c8,0x000708afc154672d]
+
+        C = Signature("C", UInt32[2,3,5,6])
+        signatures = [A, B, C]
+        candiate_duplicates = lsh(signatures, 2)
+
+        candiate_duplicates[1].band
+        @test collect(values(candiate_duplicates[1]))[1] == Set(["A", "B"])
+        @test collect(values(candiate_duplicates[2]))[1] == Set(["B", "C"])
+    end
+    @testset "filter_collisions!" begin
+        d = Dict("A" => Set([1,2]), "B" => Set([3]))
+        filter_collisions!(d)
+        @test d == Dict("A" => Set([1,2]))
+    end
+    @testset "jaccard" begin
+        @test jaccard(1:100, 2:100) == .99
+        @test jaccard([], []) == 1.
     end
 end
