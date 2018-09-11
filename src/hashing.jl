@@ -257,24 +257,6 @@ end
 filter_collisions!(h::HashTable) = filter_collisions!(h.hashtable)
 
 """
-    candidates(hashtable)
-
-Return candidate matches.
-"""
-function candidates(hashtable)
-    v = Vector{Set}()
-    sizehint!(v, length(hashtable))
-
-    for (bucket, IDs) = hashtable
-        for (i, j) = combinations(collect(IDs), 2)
-            push!(v, Set([i,j]))
-        end
-    end
-
-    unique!(v)
-end
-
-"""
     jaccard(a, b)
 
 Calculate Jaccard similarity of two sets.
@@ -295,20 +277,38 @@ function jaccard(a::T, b::T) where T<:Union{AbstractVector,AbstractSet}
     length(a ∩ b) / length(a ∪ b)
 end
 
-"""
-    filter_candidates(signatures, candidates, threshold)
-
-Remove `candidates` with Jaccard similarity between their `signatures` less than
-`threshold`.
-"""
-function filter_candidates(signatures, candidates, threshold)
-    out = Vector{Tuple{Int,Int}}()
-
-    for (i, j) = candidates
-        println(i,j)
-        similarity = jaccard(signatures[:,i], signatures[:,j])
-        similarity >= threshold ? push!(out, (i,j)) : nothing
-    end
-
-    out
-end
+# """
+#     candidates(hashtable)
+#
+# Return candidate matches.
+# """
+# function candidates(hashtable)
+#     v = Vector{Set}()
+#     sizehint!(v, length(hashtable))
+#
+#     for (bucket, IDs) = hashtable
+#         for (i, j) = combinations(collect(IDs), 2)
+#             push!(v, Set([i,j]))
+#         end
+#     end
+#
+#     unique!(v)
+# end
+#
+# """
+#     filter_candidates(signatures, candidates, threshold)
+#
+# Remove `candidates` with Jaccard similarity between their `signatures` less than
+# `threshold`.
+# """
+# function filter_candidates(signatures, candidates, threshold)
+#     out = Vector{Tuple{Int,Int}}()
+#
+#     for (i, j) = candidates
+#         println(i,j)
+#         similarity = jaccard(signatures[:,i], signatures[:,j])
+#         similarity >= threshold ? push!(out, (i,j)) : nothing
+#     end
+#
+#     out
+# end
