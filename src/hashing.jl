@@ -1,3 +1,5 @@
+import Base: iterate, length, keys, values, haskey, delete!
+
 """
     minhash(s, k[, seed])
 
@@ -170,17 +172,18 @@ HashTable(K::Type, V::Type, band::Int) = HashTable(band, Dict{K,Set{V}}())
 band(h::HashTable) = h.band
 hashtable(h::HashTable) = h.hashtable
 
-Base.iterate(h::HashTable)         = iterate(hashtable(h))
-Base.iterate(h::HashTable, i::Int) = iterate(hashtable(h), i)
-Base.length(h::HashTable)          = length(hashtable(h))
-Base.haskey(h::HashTable, k)       = haskey(hashtable(h), k)
-Base.keys(h::HashTable)            = keys(hashtable(h))
-Base.values(h::HashTable)          = values(hashtable(h))
-Base.get(h::HashTable, k, default) = get(hashtable(h), k, default)
-Base.delete!(h::HashTable, k)      = delete!(hashtable(h), k)
+for f in (:iterate, :length, :keys, :values)
+    @eval ($f)(h::HashTable) = ($f)(hashtable(h))
+end
+for f in (:haskey, :delete!)
+    @eval ($f)(h::HashTable, k) = ($f)(hashtable(h), k)
+end
 function Base.setindex!(h::HashTable, v, k)
     haskey(h, k) ? push!(hashtable(h)[k], v) : hashtable(h)[k] = Set([v])
 end
+Base.iterate(h::HashTable, i::Int) = iterate(hashtable(h), i)
+Base.get(h::HashTable, k, default) = get(hashtable(h), k, default)
+
 
 """
     lsh(signature, bands)
