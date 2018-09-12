@@ -1,5 +1,7 @@
 import Base: iterate, length, keys, values, haskey, delete!
 
+# MinHashing
+
 """
     minhash(s, k[, seed])
 
@@ -150,6 +152,8 @@ julia> hashband(s, 3, 4)
     hash(@view signature(S)[start:stop])  # TODO use 32 bit hash
 end
 
+# HashTable
+
 """
 ```jldoctest
 julia> h = HashTable(String, Int, 1)
@@ -184,6 +188,7 @@ end
 Base.iterate(h::HashTable, i::Int) = iterate(hashtable(h), i)
 Base.get(h::HashTable, k, default) = get(hashtable(h), k, default)
 
+# LSH
 
 """
     lsh(signature, bands)
@@ -251,6 +256,8 @@ function filter_collisions!(hashtable::AbstractDict)
         end
     end
 end
+
+# Similarity
 
 """
     jaccard(a, b)
