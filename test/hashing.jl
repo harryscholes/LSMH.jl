@@ -1,5 +1,6 @@
-using LSMH: minhash, AbstractSignature, Signature, HashTable, hashband,
-            hashtable, band, filter_collisions!, jaccard
+using LSMH: filter_collisions!
+
+minhash = LSMH.minhash
 
 @testset "hashing.jl" begin
     @testset "minhash" begin
