@@ -155,6 +155,12 @@ end
 # HashTable
 
 """
+    HashTable(band, hashtable)
+    HashTable(K, V, band)
+
+Construct a hashtable.
+
+# Examples
 ```jldoctest
 julia> h = HashTable(String, Int, 1)
 
