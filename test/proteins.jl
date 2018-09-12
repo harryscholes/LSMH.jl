@@ -1,5 +1,3 @@
-using BioSequences.FASTA
-
 @testset "proteins.jl" begin
     @testset "fasta_records" begin
         fasta_file = IOBuffer(
@@ -15,10 +13,10 @@ using BioSequences.FASTA
         rec = records[1]
         @test FASTA.identifier(rec) == "seqA"
         @test FASTA.description(rec) == "some description"
-        @test sequence(rec) == AminoAcidSequence("QIKDLLVSSSTDLDTTLKMKILELPFASGDLSM")
+        @test FASTA.sequence(rec) == AminoAcidSequence("QIKDLLVSSSTDLDTTLKMKILELPFASGDLSM")
         rec = records[2]
         @test FASTA.identifier(rec) == "seqB"
-        @test sequence(rec) == AminoAcidSequence("VLMALGMTDLFIPSANLTG*")
+        @test FASTA.sequence(rec) == AminoAcidSequence("VLMALGMTDLFIPSANLTG*")
     end
     @testset "signature" begin
         record = FASTA.Record(

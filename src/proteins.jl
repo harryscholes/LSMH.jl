@@ -43,7 +43,7 @@ Generates `n` minhash signatures from `k`-shingles of a biological sequence
 in a FASTA record.
 """
 function signature(record::BioSequences.FASTA.Record, k::Int, n::Int)
-    id = BioSequences.FASTA.identifier(record)
+    id = FASTA.identifier(record)
     sig = signature(String(sequence(record)), k, n)
     Signature(id, sig)
 end
