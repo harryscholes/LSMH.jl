@@ -174,18 +174,16 @@ HashTable(K::Type, V::Type, band::Int) = HashTable(band, Dict{K,Set{V}}())
 band(h::HashTable) = h.band
 hashtable(h::HashTable) = h.hashtable
 
-Base.iterate(h::HashTable) = iterate(hashtable(h))
+Base.iterate(h::HashTable)         = iterate(hashtable(h))
 Base.iterate(h::HashTable, i::Int) = iterate(hashtable(h), i)
-Base.length(h::HashTable) = length(hashtable(h))
-Base.haskey(h::HashTable, k) = haskey(hashtable(h), k)
-Base.keys(h::HashTable) = keys(hashtable(h))
-Base.values(h::HashTable) = values(hashtable(h))
+Base.length(h::HashTable)          = length(hashtable(h))
+Base.haskey(h::HashTable, k)       = haskey(hashtable(h), k)
+Base.keys(h::HashTable)            = keys(hashtable(h))
+Base.values(h::HashTable)          = values(hashtable(h))
+Base.get(h::HashTable, k, default) = get(hashtable(h), k, default)
+Base.delete!(h::HashTable, k)      = delete!(hashtable(h), k)
 function Base.setindex!(h::HashTable, v, k)
-    if haskey(h, k)
-        push!(hashtable(h)[k], v)
-    else
-        hashtable(h)[k] = Set([v])
-    end
+    haskey(h, k) ? push!(hashtable(h)[k], v) : hashtable(h)[k] = Set([v])
 end
 
 """
@@ -254,7 +252,6 @@ function filter_collisions!(hashtable::AbstractDict)
         end
     end
 end
-filter_collisions!(h::HashTable) = filter_collisions!(h.hashtable)
 
 """
     jaccard(a, b)
