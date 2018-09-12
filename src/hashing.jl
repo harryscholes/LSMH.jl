@@ -1,4 +1,5 @@
-import Base: iterate, length, keys, values, haskey, delete!
+import Base: iterate, length, keys, values, haskey, delete!, size, getindex,
+             IndexStyle
 
 # MinHashing
 
@@ -76,7 +77,13 @@ Any subtype `S` <: `AbstractSignature` should implement the following methods:
 * `identifier`: return the identifier for the signature
 * `signature`: return the vector of MinHashes that constitute the signature
 """
-abstract type AbstractSignature end
+abstract type AbstractSignature{T} <: AbstractVector{T} end
+
+identifier(s::AbstractSignature) = s.id
+signature(s::AbstractSignature) = s.signature
+size(s::AbstractSignature) = size(signature(s))
+getindex(s::AbstractSignature, i::Int) = getindex(signature(s), i)
+IndexStyle(::AbstractSignature) = IndexLinear()
 
 """
     identifier(s::AbstractSignature)
@@ -91,7 +98,7 @@ julia> identifier(s)
 "ABC"
 ```
 """
-identifier(s::AbstractSignature)::AbstractString = s.id
+identifier
 
 """
     signature(s::AbstractSignature)
@@ -109,7 +116,7 @@ julia> signature(s)
  0x03
 ```
 """
-signature(s::AbstractSignature)::AbstractVector{<:Unsigned} = s.signature
+signature
 
 """
     Signature(id, signature)
@@ -122,9 +129,9 @@ julia> Signature("A", UInt32[1,2,3])
 Signature{String,Array{UInt32,1}}("A", UInt8[0x01, 0x02, 0x03])
 ```
 """
-struct Signature{I<:AbstractString,S<:AbstractVector{<:Unsigned}} <: AbstractSignature
-    id::I
-    signature::S
+struct Signature{S<:Unsigned} <: AbstractSignature{S}
+    id::String
+    signature::Vector{S}
 end
 
 """
@@ -148,8 +155,8 @@ julia> hashband(s, 3, 4)
 0xad365722dfd05b0d
 ```
 """
-@inline function hashband(S::AbstractSignature, start::Int, stop::Int)
-    hash(@view signature(S)[start:stop])  # TODO use 32 bit hash
+@inline function hashband(s::AbstractSignature, start::Int, stop::Int)
+    hash(@view s[start:stop])  # TODO use 32 bit hash
 end
 
 # HashTable
