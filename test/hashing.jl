@@ -81,6 +81,9 @@ end
     end
     @testset "filter_collisions!" begin
         d = Dict("A" => Set([1,2]), "B" => Set([3]))
+        ht = HashTable(1, d)
+        filter_collisions!(ht)
+        @test hashtable(ht) == Dict("A" => Set([1,2]))
         filter_collisions!(d)
         @test d == Dict("A" => Set([1,2]))
     end
