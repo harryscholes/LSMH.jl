@@ -129,9 +129,9 @@ julia> Signature("A", UInt32[1,2,3])
 Signature{String,Array{UInt32,1}}("A", UInt8[0x01, 0x02, 0x03])
 ```
 """
-struct Signature{S<:Unsigned} <: AbstractSignature{S}
+struct Signature{T<:Unsigned} <: AbstractSignature{T}
     id::String
-    signature::Vector{S}
+    signature::Vector{T}
 end
 
 """
