@@ -273,24 +273,35 @@ function jaccard(a::T, b::T) where T<:Union{AbstractVector,AbstractSet}
     length(a ∩ b) / length(a ∪ b)
 end
 
-# """
-#     candidates(hashtable)
-#
-# Return candidate matches.
-# """
-# function candidates(hashtable)
-#     v = Vector{Set}()
-#     sizehint!(v, length(hashtable))
-#
-#     for (bucket, IDs) = hashtable
-#         for (i, j) = combinations(collect(IDs), 2)
-#             push!(v, Set([i,j]))
-#         end
-#     end
-#
-#     unique!(v)
-# end
-#
+"""
+    candidates(d)
+
+Return pairs of candidate matches from `d`.
+
+# Examples
+```jldoctest
+julia> d = Dict(nothing => Set([1,2,3]));
+
+julia> candidates(d)
+3-element Array{Set{Int64},1}:
+ Set([2, 3])
+ Set([2, 1])
+ Set([3, 1])
+```
+"""
+function candidates(d::AbstractDict)
+    v = Vector{Set{eltype(eltype(values(hashtable)))}}()
+    sizehint!(v, length(d))
+
+    for (bucket, IDs) = d
+        for (i, j) = combinations(collect(IDs), 2)
+            push!(v, Set([i,j]))
+        end
+    end
+
+    unique!(v)
+end
+
 # """
 #     filter_candidates(signatures, candidates, threshold)
 #

@@ -79,4 +79,8 @@ using LSMH: minhash, AbstractSignature, Signature, HashTable, hashband,
         @test jaccard(1:100, 2:100) == .99
         @test jaccard([], []) == 1.
     end
+    @testset "candidates" begin
+        d = Dict(nothing => Set([1,2,3]))
+        @test candidates(d) == Vector{Set{Int}}([Set([2,3]),Set([2,1]),Set([3,1])])
+    end
 end
