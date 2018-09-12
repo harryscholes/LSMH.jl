@@ -87,9 +87,7 @@ julia> identifier(s)
 "ABC"
 ```
 """
-function identifier(s::AbstractSignature)::AbstractString
-    isdefined(s, :id) ? s.id : throw(UndefRefError())
-end
+identifier(s::AbstractSignature)::AbstractString = s.id
 
 """
     signature(s::AbstractSignature)
@@ -107,9 +105,7 @@ julia> signature(s)
  0x03
 ```
 """
-function signature(s::AbstractSignature)::AbstractVector{<:Unsigned}
-    isdefined(s, :signature) ? s.signature : throw(UndefRefError())
-end
+signature(s::AbstractSignature)::AbstractVector{<:Unsigned} = s.signature
 
 """
     Signature(id, signature)

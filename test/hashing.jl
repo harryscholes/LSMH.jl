@@ -1,10 +1,6 @@
 using LSMH: minhash, AbstractSignature, Signature, HashTable, hashband,
             hashtable, band, filter_collisions!, jaccard
 
-struct BadSignature <: AbstractSignature
-    badfield
-end
-
 @testset "hashing.jl" begin
     @testset "minhash" begin
         s = "Hello, world!"
@@ -25,24 +21,16 @@ end
         @test_throws DomainError signature(s, 1, 3)
         @test_throws DomainError signature(s, 2, 0)
     end
-    @testset "identifier" begin
+    @testset "AbstractSignature" begin
         sig = Signature("ABC", UInt32[1,2,3])
-        @test identifier(sig) == "ABC"
 
-        badsig = BadSignature(nothing)
-        @test_throws UndefRefError identifier(badsig)
-    end
-    @testset "signature" begin
-        sig = Signature("ABC", UInt32[1,2,3])
+        @test identifier(sig) == "ABC"
         @test signature(sig) == UInt32[1,2,3]
 
-        badsig = BadSignature(nothing)
-        @test_throws UndefRefError signature(badsig)
-    end
-    @testset "Signature" begin
-        sig = Signature("ABC", UInt32[1,2,3])
-        @test isdefined(sig, :id)
-        @test isdefined(sig, :signature)
+        @testset "Signature" begin
+            @test isdefined(sig, :id)
+            @test isdefined(sig, :signature)
+        end
     end
     @testset "hashband" begin
         sig = Signature("ABC", Array{UInt32}(1:100))
