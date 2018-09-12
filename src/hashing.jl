@@ -234,9 +234,11 @@ function lsh(S::AbstractSignature, bands::Int)::Vector{<:Unsigned}
 end
 
 """
-    filter_collisions!(hashtable)
+    filter_collisions!(d)
 
-Removes non-colliding sequences from the `hashtable`.
+Removes non-colliding sequences from `d`.
+
+Often `d<:AbstractDict{K,<:AbstractSet{V}}`.
 
 # Examples
 ```jldoctest
@@ -249,10 +251,10 @@ Dict{String,Set{Int64}} with 1 entry:
   "A" => Set([2, 1])
 ```
 """
-function filter_collisions!(hashtable::AbstractDict)
-    for k = keys(hashtable)
-        if length(hashtable[k]) == 1
-            delete!(hashtable, k)
+function filter_collisions!(d::AbstractDict)
+    for k = keys(d)
+        if length(d[k]) == 1
+            delete!(d, k)
         end
     end
 end
