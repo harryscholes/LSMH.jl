@@ -14,4 +14,16 @@ end
             end
         end
     end
+    @testset "murmur32" begin
+        s = "Hello, world!"
+        @test murmur32(s) == MurmurHash3_x86_32(s, UInt32(0)) == 0xc0363e43
+        @test murmur32(s, 0) == MurmurHash3_x86_32(s, UInt32(0)) == 0xc0363e43
+        @test murmur32(s, 0x00000000) == MurmurHash3_x86_32(s, UInt32(0)) == 0xc0363e43
+        @test murmur32(s, 1) == MurmurHash3_x86_32(s, UInt32(1)) == 0xaa5dc85b
+        @test murmur32(s, 0x00000001) == MurmurHash3_x86_32(s, UInt32(1)) == 0xaa5dc85b
+    end
+    @testset "DomainError" begin
+        @test_throws DomainError murmur32("A", -1)
+        @test_throws DomainError murmur32("A", typemax(UInt32)+1)
+    end
 end

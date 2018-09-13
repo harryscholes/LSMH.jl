@@ -2,11 +2,16 @@
 MurmurHash3 was written by Austin Appleby, and is placed in the public
 domain.
 =#
-const Hashable = Union{AbstractString,Array{UInt8}}
 const c1 = 0xcc9e2d51
 const c2 = 0x1b873593
 
-function murmur32(data::Hashable, seed::UInt32)::UInt32
+"""
+    murmur32(key[, seed])
+
+Hash `key` to a `UInt32` using the 32 bit MurmurHash3 hashing function, optionally
+seeded with `seed`.
+"""
+function murmur32(data::Union{AbstractString,Array{UInt8}}, seed::UInt32)::UInt32
     # head
     len = UInt32(length(data))
     nblocks = div(len, 4)
@@ -37,15 +42,14 @@ function murmur32(data::Hashable, seed::UInt32)::UInt32
     h = h ⊻ len
     h = fmix32(h)
 end
-murmur32(key::Hashable) = murmur32(key, UInt32(0))
-murmur32(key::Hashable, seed::Integer) = murmur32(key, UInt32(seed))
-
-"""
-    murmur32(key [, seed])
-
-32 bit hash of `key` using MurmurHash3, optionally seeded with `seed`.
-"""
-murmur32
+function murmur32(key::Union{AbstractString,Array{UInt8}}, seed::Integer)
+    try
+        murmur32(key, UInt32(seed))
+    catch InexactError
+        throw(DomainError(seed, "`seed` must be in [0..$(typemax(UInt32))]"))
+    end
+end
+murmur32(key::Union{AbstractString,Array{UInt8}}) = murmur32(key, UInt32(0))
 
 @inline rotl32(x::UInt32, r::Integer)::UInt32 = (x << r) | (x >> (32 - r))
 
