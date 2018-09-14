@@ -45,7 +45,7 @@ julia> minhash("Hello, world!", 5, 1)
 ```
 """
 @inline function minhash(s::AbstractString, k::Int, seed::Integer)
-    kmers = Kmers(s, k)
+    kmers = KmerVector(s, k)
     hashed = murmur32.(kmers, seed)
     minimum(hashed)
 end
