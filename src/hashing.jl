@@ -72,7 +72,6 @@ julia> signature("Hello, world!", 6, 2)
 ```
 """
 function signature(s::AbstractString, k::Int, n::Int)
-    k > 1 || throw(DomainError("`k` must be >= 2"))
     n > 0 || throw(DomainError("`n` must be >= 1"))
 
     A = Vector{UInt32}(undef, n)
