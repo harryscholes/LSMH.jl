@@ -3,15 +3,13 @@ module LSMH
 using Combinatorics, BioSequences
 
 export
-    signature,
-    lsh,
     murmur32,
     xxhash32,
-    fasta_records,
-    fasta_signatures,
-    identifier,
-    Signature,
-    HashTable
+    minhash, signature, lsh,
+    fasta_records, fasta_signatures,
+    AbstractSignature, Signature, identifier, hashband,
+    HashTable, band, hashtable,
+    candidates, jaccard
 
 include("hashing.jl")
 include("murmurhash3.jl")

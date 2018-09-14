@@ -1,4 +1,7 @@
-import Base: iterate, length, keys, values, haskey, delete!
+import Base: iterate, length, keys, values, haskey, delete!, size, getindex,
+             IndexStyle
+
+# MinHashing
 
 """
     minhash(s, k[, seed])
@@ -67,6 +70,8 @@ function signature(s::AbstractString, k::Int, n::Int)
 end
 
 """
+    AbstractSignature{T} <: AbstractVector{T}
+
 Abstract MinHash signature type.
 
 Any subtype `S` <: `AbstractSignature` should implement the following methods:
@@ -74,7 +79,13 @@ Any subtype `S` <: `AbstractSignature` should implement the following methods:
 * `identifier`: return the identifier for the signature
 * `signature`: return the vector of MinHashes that constitute the signature
 """
-abstract type AbstractSignature end
+abstract type AbstractSignature{T} <: AbstractVector{T} end
+
+identifier(s::AbstractSignature) = s.id
+signature(s::AbstractSignature) = s.signature
+size(s::AbstractSignature) = size(signature(s))
+getindex(s::AbstractSignature, i::Int) = getindex(signature(s), i)
+IndexStyle(::AbstractSignature) = IndexLinear()
 
 """
     identifier(s::AbstractSignature)
@@ -89,7 +100,7 @@ julia> identifier(s)
 "ABC"
 ```
 """
-identifier(s::AbstractSignature)::AbstractString = s.id
+identifier
 
 """
     signature(s::AbstractSignature)
@@ -107,7 +118,7 @@ julia> signature(s)
  0x03
 ```
 """
-signature(s::AbstractSignature)::AbstractVector{<:Unsigned} = s.signature
+signature
 
 """
     Signature(id, signature)
@@ -120,9 +131,9 @@ julia> Signature("A", UInt32[1,2,3])
 Signature{String,Array{UInt32,1}}("A", UInt8[0x01, 0x02, 0x03])
 ```
 """
-struct Signature{I<:AbstractString,S<:AbstractVector{<:Unsigned}} <: AbstractSignature
-    id::I
-    signature::S
+struct Signature{T<:Unsigned} <: AbstractSignature{T}
+    id::String
+    signature::Vector{T}
 end
 
 """
@@ -132,25 +143,28 @@ Hashes a band of `signature` from `start` to `stop` into a bucket.
 
 # Examples
 ```jldoctest
-julia> struct Signature <: AbstractSignature
-           id
-           signature
-       end
-
 julia> s = Signature("ID123", UInt32[1,2,3,4]);
 
 julia> hashband(s, 1, 2)
-0x8fd27f36c41781c8
+0xc3642e86
 
 julia> hashband(s, 3, 4)
-0xad365722dfd05b0d
+0xe68b97c2
 ```
 """
-@inline function hashband(S::AbstractSignature, start::Int, stop::Int)
-    hash(@view signature(S)[start:stop])  # TODO use 32 bit hash
+@inline function hashband(s::AbstractSignature, start::Int, stop::Int)
+    murmur32(s[start:stop])
 end
 
+# HashTable
+
 """
+    HashTable(band, hashtable)
+    HashTable(K, V, band)
+
+Construct a hashtable.
+
+# Examples
 ```jldoctest
 julia> h = HashTable(String, Int, 1)
 
@@ -184,6 +198,7 @@ end
 Base.iterate(h::HashTable, i::Int) = iterate(hashtable(h), i)
 Base.get(h::HashTable, k, default) = get(hashtable(h), k, default)
 
+# LSH
 
 """
     lsh(signature, bands)
@@ -229,9 +244,11 @@ function lsh(S::AbstractSignature, bands::Int)::Vector{<:Unsigned}
 end
 
 """
-    filter_collisions!(hashtable)
+    filter_collisions!(d)
 
-Removes non-colliding sequences from the `hashtable`.
+Removes non-colliding sequences from `d`.
+
+Often `d<:AbstractDict{K,<:AbstractSet{V}}`.
 
 # Examples
 ```jldoctest
@@ -244,13 +261,15 @@ Dict{String,Set{Int64}} with 1 entry:
   "A" => Set([2, 1])
 ```
 """
-function filter_collisions!(hashtable::AbstractDict)
-    for k = keys(hashtable)
-        if length(hashtable[k]) == 1
-            delete!(hashtable, k)
+function filter_collisions!(d::AbstractDict)
+    for k = keys(d)
+        if length(d[k]) == 1
+            delete!(d, k)
         end
     end
 end
+
+# Similarity
 
 """
     jaccard(a, b)
@@ -273,24 +292,35 @@ function jaccard(a::T, b::T) where T<:Union{AbstractVector,AbstractSet}
     length(a ∩ b) / length(a ∪ b)
 end
 
-# """
-#     candidates(hashtable)
-#
-# Return candidate matches.
-# """
-# function candidates(hashtable)
-#     v = Vector{Set}()
-#     sizehint!(v, length(hashtable))
-#
-#     for (bucket, IDs) = hashtable
-#         for (i, j) = combinations(collect(IDs), 2)
-#             push!(v, Set([i,j]))
-#         end
-#     end
-#
-#     unique!(v)
-# end
-#
+"""
+    candidates(d)
+
+Return pairs of candidate matches from `d`.
+
+# Examples
+```jldoctest
+julia> d = Dict(nothing => Set([1,2,3]));
+
+julia> candidates(d)
+3-element Array{Set{Int64},1}:
+ Set([2, 3])
+ Set([2, 1])
+ Set([3, 1])
+```
+"""
+function candidates(d::AbstractDict)
+    v = Vector{Set{eltype(eltype(values(hashtable)))}}()
+    sizehint!(v, length(d))
+
+    for (bucket, IDs) = d
+        for (i, j) = combinations(collect(IDs), 2)
+            push!(v, Set([i,j]))
+        end
+    end
+
+    unique!(v)
+end
+
 # """
 #     filter_candidates(signatures, candidates, threshold)
 #
