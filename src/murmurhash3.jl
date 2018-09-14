@@ -5,13 +5,7 @@ domain.
 const c1 = 0xcc9e2d51
 const c2 = 0x1b873593
 
-"""
-    murmur32(key[, seed])
-
-Hash `key` to a `UInt32` using the 32 bit MurmurHash3 hashing function, optionally
-seeded with `seed`.
-"""
-function murmur32(data::Union{AbstractString,Array{UInt8}}, seed::UInt32)::UInt32
+function _murmur32(data::Union{AbstractString,AbstractVector{UInt8}}, seed::UInt32)::UInt32
     # head
     len = UInt32(length(data))
     nblocks = div(len, 4)
@@ -42,14 +36,32 @@ function murmur32(data::Union{AbstractString,Array{UInt8}}, seed::UInt32)::UInt3
     h = h ⊻ len
     h = fmix32(h)
 end
-function murmur32(key::Union{AbstractString,Array{UInt8}}, seed::Integer)
+
+function _check_seed(k::Union{AbstractString,AbstractVector{UInt8}}, s::Integer)
     try
-        murmur32(key, UInt32(seed))
+        _murmur32(k, UInt32(s))
     catch InexactError
-        throw(DomainError(seed, "`seed` must be in [0..$(typemax(UInt32))]"))
+        throw(DomainError(s, "`seed` must be in [0..$(typemax(UInt32))]"))
     end
 end
-murmur32(key::Union{AbstractString,Array{UInt8}}) = murmur32(key, UInt32(0))
+
+murmur32(k::AbstractVector{UInt8}, s::Integer)    = _check_seed(k, s)
+murmur32(k::AbstractVector{UInt8})                = _murmur32(k, UInt32(0))
+murmur32(k::AbstractString, s::Integer)           = _check_seed(k, s)
+murmur32(k::AbstractString)                       = _murmur32(k, UInt32(0))
+murmur32(k::AbstractVector{<:Number}, s::Integer) = _check_seed(reinterpret(UInt8, k), s)
+murmur32(k::AbstractVector{<:Number})             = murmur32(reinterpret(UInt8, k))
+murmur32(k::AbstractArray{<:Number}, s::Integer)  = murmur32(vec(k), s)
+murmur32(k::AbstractArray{<:Number})              = murmur32(vec(k))
+
+"""
+    murmur32(key::AbstractArray{<:Number}[, seed])
+    murmur32(key::AbstractString[, seed])
+
+Hash `key` to a `UInt32` using the 32 bit MurmurHash3 hashing function, optionally
+seeded with `seed`.
+"""
+murmur32
 
 @inline rotl32(x::UInt32, r::Integer)::UInt32 = (x << r) | (x >> (32 - r))
 
