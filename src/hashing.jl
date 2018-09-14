@@ -1,5 +1,31 @@
-import Base: iterate, length, keys, values, haskey, delete!, size, getindex,
-             IndexStyle
+import Base: iterate, length, keys, values, haskey, delete!, size, getindex, IndexStyle
+
+# K-mers
+
+"""
+    AbstractKmerVector{T} <: AbstractVector{T}
+
+Supertype for vectors of k-mers with elements of type `T`.
+"""
+abstract type AbstractKmerVector{T} <: AbstractVector{T} end
+
+size(x::AbstractKmerVector) = (length(x.seq) - x.k + 1,)
+getindex(x::AbstractKmerVector, i::Int) = SubString(x.seq, i, i+x.k-1)
+IndexStyle(::Type{AbstractKmerVector}) = IndexLinear()
+
+"""
+    KmerVector(seq, k)
+
+Construct a `KmerVector{T}` from the `k`-mers in `seq` of type `T`.
+"""
+struct KmerVector{T} <: AbstractKmerVector{T}
+    seq::T
+    k::Int
+
+    function KmerVector(seq::T, k::Int) where T
+        k > 1 ? new{T}(seq, k) : throw(DomainError(k, "`k` must be >= 2"))
+    end
+end
 
 # MinHashing
 
