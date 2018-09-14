@@ -70,6 +70,8 @@ function signature(s::AbstractString, k::Int, n::Int)
 end
 
 """
+    AbstractSignature{T} <: AbstractVector{T}
+
 Abstract MinHash signature type.
 
 Any subtype `S` <: `AbstractSignature` should implement the following methods:
