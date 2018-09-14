@@ -45,20 +45,9 @@ julia> minhash("Hello, world!", 5, 1)
 ```
 """
 @inline function minhash(s::AbstractString, k::Int, seed::Integer)
-    k > 1 || throw(DomainError("`k` must be >= 2"))
-    seed >= 0 || throw(DomainError("`seed` must be >= 0"))
-
-    h = typemax(UInt32)
-
-    for i = 1:length(s)-k+1
-        hᵢ = murmur32(SubString(s, i:i+k-1), seed)
-
-        if hᵢ < h
-            h = hᵢ
-        end
-    end
-
-    h
+    kmers = Kmers(s, k)
+    hashed = murmur32.(kmers, seed)
+    minimum(hashed)
 end
 minhash(s::AbstractString, k::Int) = minhash(s, k, 0)
 
