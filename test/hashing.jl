@@ -35,8 +35,8 @@ minhash = LSMH.minhash
     end
     @testset "hashband" begin
         sig = Signature("ABC", Array{UInt32}(1:100))
-        @test hashband(sig, 1, 10) == 0xee56bf56bfc5b740
-        @test hashband(sig, 11, 20) == 0x22f7fea1a9226a53
+        @test hashband(sig, 1, 10) == 0x83af1d94
+        @test hashband(sig, 11, 20) == 0x531e9145
     end
     @testset "HashTable" begin
         ht = HashTable(UInt32, Int, 1)
@@ -57,8 +57,8 @@ minhash = LSMH.minhash
     @testset "lsh" begin
         A = Signature("A", UInt32[1,2,3,4])
         B = Signature("B", UInt32[1,2,5,6])
-        @test lsh(A, 2) == UInt64[0x8fd27f36c41781c8,0xad365722dfd05b0d]
-        @test lsh(B, 2) == UInt64[0x8fd27f36c41781c8,0x000708afc154672d]
+        @test lsh(A, 2) == UInt32[0xc3642e86, 0xe68b97c2]
+        @test lsh(B, 2) == UInt32[0xc3642e86, 0x584cfdb6]
 
         C = Signature("C", UInt32[2,3,5,6])
         signatures = [A, B, C]

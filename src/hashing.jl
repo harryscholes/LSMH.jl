@@ -143,22 +143,17 @@ Hashes a band of `signature` from `start` to `stop` into a bucket.
 
 # Examples
 ```jldoctest
-julia> struct Signature <: AbstractSignature
-           id
-           signature
-       end
-
 julia> s = Signature("ID123", UInt32[1,2,3,4]);
 
 julia> hashband(s, 1, 2)
-0x8fd27f36c41781c8
+0xc3642e86
 
 julia> hashband(s, 3, 4)
-0xad365722dfd05b0d
+0xe68b97c2
 ```
 """
 @inline function hashband(s::AbstractSignature, start::Int, stop::Int)
-    hash(@view s[start:stop])  # TODO use 32 bit hash
+    murmur32(s[start:stop])
 end
 
 # HashTable
